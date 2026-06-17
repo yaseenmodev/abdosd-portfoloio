@@ -135,9 +135,6 @@ export default function Home() {
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-100 shadow-sm">
         <div className="container flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-medical-gradient flex items-center justify-center">
-              <Stethoscope className="w-4 h-4 text-white" />
-            </div>
             <span className="font-bold text-lg text-slate-800">Dr. Abdellrahman</span>
           </div>
           <div className="hidden md:flex items-center gap-6">
@@ -689,9 +686,6 @@ export default function Home() {
         <div className="container">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-medical-blue flex items-center justify-center">
-                <Stethoscope className="w-4 h-4 text-white" />
-              </div>
               <span className="text-white font-semibold">Dr. Abdellrahman Saffa Aldin</span>
             </div>
             <div className="flex gap-4 text-sm">
