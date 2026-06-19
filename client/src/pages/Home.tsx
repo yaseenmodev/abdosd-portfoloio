@@ -228,7 +228,7 @@ export default function Home() {
                   <MessageCircle className="w-5 h-5" />
                 </a>
                 <a
-                  href="https://instagram.com/[INSTAGRAM_HANDLE]"
+                  href="https://instagram.com/drasd.personal"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2.5 rounded-lg bg-pink-50 hover:bg-pink-100 text-pink-600 transition-colors"
@@ -237,7 +237,7 @@ export default function Home() {
                   <Instagram className="w-5 h-5" />
                 </a>
                 <a
-                  href="mailto:drasdpersonal@gmail.com"
+                  href="mailto:contact@drasd.com"
                   className="p-2.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-medical-blue transition-colors"
                   title="Email"
                 >
@@ -614,8 +614,8 @@ export default function Home() {
                       <Mail className="w-5 h-5 text-medical-blue flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="text-xs text-slate-500 mb-0.5">Email</p>
-                        <a href="mailto:drasdpersonal@gmail.com" className="text-medical-blue font-semibold hover:underline text-sm">
-                          drasdpersonal@gmail.com
+                        <a href="mailto:contact@drasd.com" className="text-medical-blue font-semibold hover:underline text-sm">
+                          contact@drasd.com
                         </a>
                       </div>
                     </div>
@@ -633,12 +633,12 @@ export default function Home() {
                       <div>
                         <p className="text-xs text-slate-500 mb-0.5">Instagram</p>
                         <a
-                          href="https://instagram.com/[INSTAGRAM_HANDLE]"
+                          href="https://instagram.com/drasd.personal"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-medical-blue font-semibold hover:underline text-sm"
                         >
-                          @[INSTAGRAM_HANDLE]
+                          @drasd.personal
                         </a>
                       </div>
                     </div>
@@ -698,11 +698,11 @@ export default function Home() {
                 className="p-2 rounded-lg hover:bg-slate-800 transition-colors">
                 <MessageCircle className="w-4 h-4" />
               </a>
-              <a href="https://instagram.com/[INSTAGRAM_HANDLE]" target="_blank" rel="noopener noreferrer"
+              <a href="https://instagram.com/drasd.personal" target="_blank" rel="noopener noreferrer"
                 className="p-2 rounded-lg hover:bg-slate-800 transition-colors">
                 <Instagram className="w-4 h-4" />
               </a>
-              <a href="mailto:drasdpersonal@gmail.com"
+              <a href="mailto:contact@drasd.com"
                 className="p-2 rounded-lg hover:bg-slate-800 transition-colors">
                 <Mail className="w-4 h-4" />
               </a>
