@@ -82,7 +82,6 @@ export default function Checkout() {
             quantity: items[idx]?.quantity ?? 1,
           })),
           customer: { email: form.email },
-          customData: { orderId: String(result.orderId) },
         });
       } else {
         toast.success("Order placed! You will be contacted for payment details.");
