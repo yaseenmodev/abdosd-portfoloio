@@ -16,16 +16,30 @@ import {
   deleteProduct,
   createOrder,
   getAllOrders,
-  getOrderById,
   updateOrderStatus,
-  updateOrderByPaymobId,
   createSessionBooking,
   getAllSessionBookings,
-  updateBookingByPaymobId,
+  updateBookingStatus,
 } from "./db";
-import { createPaymobPayment, verifyPaymobHmac } from "./paymob";
+import { verifyPaddleWebhook } from "./paddle";
 import { TRPCError } from "@trpc/server";
+import fs from "node:fs";
+import path from "node:path";
 import type { Request, Response } from "express";
+
+// Fallback: save contact to JSON file when DB is unavailable
+function saveContactToFile(contact: Record<string, unknown>) {
+  try {
+    const filePath = path.join(process.cwd(), "contacts-fallback.json");
+    const existing = fs.existsSync(filePath)
+      ? JSON.parse(fs.readFileSync(filePath, "utf-8"))
+      : [];
+    existing.push({ ...contact, savedAt: new Date().toISOString() });
+    fs.writeFileSync(filePath, JSON.stringify(existing, null, 2));
+  } catch {
+    console.error("[Contact] Failed to save contact to file fallback");
+  }
+}
 
 export const appRouter = router({
   system: systemRouter,
@@ -52,7 +66,12 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
-        await createContact(input);
+        try {
+          await createContact(input);
+        } catch {
+          // DB unavailable — save to file so message is not lost
+          saveContactToFile(input);
+        }
         return { success: true };
       }),
 
@@ -106,6 +125,7 @@ export const appRouter = router({
           inStock: z.number().optional(),
           featured: z.number().optional(),
           downloadUrl: z.string().optional(),
+          paddlePriceId: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -132,6 +152,7 @@ export const appRouter = router({
           inStock: z.number().optional(),
           featured: z.number().optional(),
           downloadUrl: z.string().optional(),
+          paddlePriceId: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -171,39 +192,35 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
-        const order = await createOrder({
-          customerName: input.customerName,
-          customerEmail: input.customerEmail,
-          customerPhone: input.customerPhone,
-          items: JSON.stringify(input.items),
-          totalAmount: input.totalAmount,
-          status: "pending",
-        });
+        let orderId: number | null = null;
+        let paddlePriceIds: string[] = [];
 
-        const amountCents = Math.round(parseFloat(input.totalAmount) * 100);
-
-        let paymobResult = null;
         try {
-          paymobResult = await createPaymobPayment({
-            amountCents,
-            items: input.items.map((i) => ({
-              name: i.title,
-              amount_cents: Math.round(parseFloat(i.price) * 100 * i.quantity),
-              description: i.title,
-              quantity: i.quantity,
-            })),
+          const result = await createOrder({
             customerName: input.customerName,
             customerEmail: input.customerEmail,
-            customerPhone: input.customerPhone ?? "",
+            customerPhone: input.customerPhone,
+            items: JSON.stringify(input.items),
+            totalAmount: input.totalAmount,
+            status: "pending",
           });
+          orderId = (result as any).insertId ?? null;
+
+          // Fetch paddle price IDs from products
+          const productDetails = await Promise.all(
+            input.items.map((i) => getProductById(i.productId))
+          );
+          paddlePriceIds = productDetails
+            .map((p) => (p as any)?.paddlePriceId)
+            .filter(Boolean);
         } catch (err) {
-          console.error("[Paymob] Failed to create payment:", err);
+          console.error("[Order] DB unavailable, proceeding without DB:", err);
         }
 
         return {
           success: true,
-          iframeUrl: paymobResult?.iframeUrl ?? null,
-          paymobOrderId: paymobResult?.paymobOrderId ?? null,
+          orderId,
+          paddlePriceIds,
         };
       }),
 
@@ -237,39 +254,28 @@ export const appRouter = router({
           sessionCount: z.number().min(1),
           totalAmount: z.string(),
           notes: z.string().optional(),
+          paddlePriceId: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
-        await createSessionBooking({
-          ...input,
-          status: "pending",
-        });
-
-        const amountCents = Math.round(parseFloat(input.totalAmount) * 100);
-
-        let paymobResult = null;
         try {
-          paymobResult = await createPaymobPayment({
-            amountCents,
-            items: [
-              {
-                name: `USMLE Step 1 Mentoring - ${input.packageType}`,
-                amount_cents: amountCents,
-                description: `${input.sessionCount} session(s)`,
-                quantity: 1,
-              },
-            ],
-            customerName: input.studentName,
-            customerEmail: input.studentEmail,
-            customerPhone: input.studentPhone ?? "",
+          await createSessionBooking({
+            studentName: input.studentName,
+            studentEmail: input.studentEmail,
+            studentPhone: input.studentPhone,
+            packageType: input.packageType,
+            sessionCount: input.sessionCount,
+            totalAmount: input.totalAmount,
+            notes: input.notes,
+            status: "pending",
           });
         } catch (err) {
-          console.error("[Paymob] Failed to create booking payment:", err);
+          console.error("[Booking] DB unavailable:", err);
         }
 
         return {
           success: true,
-          iframeUrl: paymobResult?.iframeUrl ?? null,
+          paddlePriceId: input.paddlePriceId ?? null,
         };
       }),
 
@@ -278,17 +284,12 @@ export const appRouter = router({
     updateStatus: adminProcedure
       .input(
         z.object({
-          paymobOrderId: z.string(),
+          id: z.number(),
           status: z.enum(["pending", "paid", "confirmed", "completed", "cancelled"]),
-          paymobTransactionId: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
-        await updateBookingByPaymobId(
-          input.paymobOrderId,
-          input.status,
-          input.paymobTransactionId
-        );
+        await updateBookingStatus(input.id, input.status);
         return { success: true };
       }),
   }),

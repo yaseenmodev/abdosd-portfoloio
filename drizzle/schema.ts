@@ -51,6 +51,7 @@ export const products = mysqlTable("products", {
   inStock: int("inStock").default(1).notNull(),
   featured: int("featured").default(0).notNull(),
   downloadUrl: varchar("downloadUrl", { length: 500 }),
+  paddlePriceId: varchar("paddlePriceId", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

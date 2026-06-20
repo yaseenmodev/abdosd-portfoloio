@@ -192,6 +192,15 @@ export async function getAllSessionBookings(): Promise<SessionBooking[]> {
   return db.select().from(sessionBookings).orderBy(sessionBookings.createdAt) as Promise<SessionBooking[]>;
 }
 
+export async function updateBookingStatus(
+  id: number,
+  status: "pending" | "paid" | "confirmed" | "completed" | "cancelled"
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(sessionBookings).set({ status }).where(eq(sessionBookings.id, id));
+}
+
 export async function updateBookingByPaymobId(
   paymobOrderId: string,
   status: "pending" | "paid" | "confirmed" | "completed" | "cancelled",

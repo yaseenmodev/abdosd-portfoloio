@@ -1,23 +1,45 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, ShoppingCart, CreditCard, Shield, Loader2, CheckCircle2, ExternalLink } from "lucide-react";
+import { ArrowLeft, ShoppingCart, CreditCard, Shield, Loader2, CheckCircle2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { initializePaddle, type Paddle } from "@paddle/paddle-js";
+
+const PADDLE_CLIENT_TOKEN = import.meta.env.VITE_PADDLE_CLIENT_TOKEN ?? "";
+const PADDLE_ENVIRONMENT = (import.meta.env.VITE_PADDLE_ENVIRONMENT ?? "sandbox") as "sandbox" | "production";
 
 export default function Checkout() {
   const [, navigate] = useLocation();
   const { items, total, clearCart } = useCart();
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
-  const [iframeUrl, setIframeUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [paddle, setPaddle] = useState<Paddle | undefined>();
 
   const createOrder = trpc.orders.create.useMutation();
 
-  if (items.length === 0 && !iframeUrl) {
+  useEffect(() => {
+    if (!PADDLE_CLIENT_TOKEN) return;
+    initializePaddle({
+      environment: PADDLE_ENVIRONMENT,
+      token: PADDLE_CLIENT_TOKEN,
+      eventCallback(event) {
+        if (event.name === "checkout.completed") {
+          clearCart();
+          toast.success("Payment successful! Your download link will be sent to your email.");
+          navigate("/");
+        }
+        if (event.name === "checkout.error") {
+          toast.error("Payment failed. Please try again.");
+        }
+      },
+    }).then(setPaddle);
+  }, []);
+
+  if (items.length === 0) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4">
         <ShoppingCart className="w-16 h-16 text-slate-200" />
@@ -53,75 +75,29 @@ export default function Checkout() {
         totalAmount: total.toFixed(2),
       });
 
-      if (result.iframeUrl) {
-        setIframeUrl(result.iframeUrl);
-        clearCart();
+      if (result.paddlePriceIds && result.paddlePriceIds.length > 0 && paddle) {
+        paddle.Checkout.open({
+          items: result.paddlePriceIds.map((priceId: string, idx: number) => ({
+            priceId,
+            quantity: items[idx]?.quantity ?? 1,
+          })),
+          customer: { email: form.email },
+          customData: { orderId: String(result.orderId) },
+        });
       } else {
         toast.success("Order placed! You will be contacted for payment details.");
         clearCart();
         navigate("/");
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to place order. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (iframeUrl) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col">
-        <div className="bg-white border-b border-slate-100">
-          <div className="container py-4 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-medical-blue flex items-center justify-center">
-              <Shield className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <p className="font-semibold text-slate-900">Secure Payment — Paymob</p>
-              <p className="text-xs text-slate-500">Your payment is protected by Paymob SSL encryption</p>
-            </div>
-          </div>
-        </div>
-        <div className="flex-1 flex flex-col items-center justify-center p-4">
-          <Card className="w-full max-w-lg overflow-hidden border border-slate-200">
-            <div className="p-4 bg-green-50 border-b border-green-100 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-green-600" />
-              <p className="text-sm text-green-700 font-medium">
-                Order submitted! Complete payment below.
-              </p>
-            </div>
-            <div className="p-4 flex flex-col gap-4">
-              <p className="text-sm text-slate-600">
-                Complete your payment securely through Paymob. Your download link will be sent to your email after confirmation.
-              </p>
-              <a
-                href={iframeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block"
-              >
-                <Button className="w-full bg-medical-blue hover:bg-blue-800 text-white gap-2">
-                  <ExternalLink className="w-4 h-4" /> Open Paymob Payment Page
-                </Button>
-              </a>
-              <p className="text-xs text-slate-400 text-center">
-                A new tab will open with the payment form. Return here once complete.
-              </p>
-              <Link href="/">
-                <Button variant="ghost" className="w-full text-slate-500">
-                  Return to Home
-                </Button>
-              </Link>
-            </div>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
       <div className="bg-white border-b border-slate-100">
         <div className="container py-4 flex items-center gap-3">
           <Link href="/cart">
@@ -135,7 +111,6 @@ export default function Checkout() {
 
       <div className="container py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Form */}
           <div>
             <Card className="p-6 border border-slate-200 bg-white">
               <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
@@ -174,18 +149,16 @@ export default function Checkout() {
                   />
                 </div>
 
-                {/* Paymob policies */}
                 <Card className="p-4 bg-blue-50 border border-blue-100 mt-4">
                   <div className="flex gap-2 mb-3">
                     <Shield className="w-4 h-4 text-medical-blue flex-shrink-0 mt-0.5" />
-                    <p className="text-xs font-semibold text-slate-700">Payment Policies (Paymob)</p>
+                    <p className="text-xs font-semibold text-slate-700">Secure Payment by Paddle</p>
                   </div>
                   <ul className="space-y-1.5 text-xs text-slate-600">
-                    <li className="flex gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-medical-green flex-shrink-0 mt-0.5" /> All transactions are processed securely via Paymob (PCI-DSS compliant)</li>
-                    <li className="flex gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-medical-green flex-shrink-0 mt-0.5" /> Payments are in EGP (Egyptian Pound). Amount converted at checkout.</li>
-                    <li className="flex gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-medical-green flex-shrink-0 mt-0.5" /> Digital products are non-refundable after download is delivered.</li>
-                    <li className="flex gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-medical-green flex-shrink-0 mt-0.5" /> Supported: Visa, MasterCard, Meeza, and mobile wallets.</li>
-                    <li className="flex gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-medical-green flex-shrink-0 mt-0.5" /> Your card details are never stored on our server.</li>
+                    <li className="flex gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-medical-green flex-shrink-0 mt-0.5" /> PCI-DSS compliant — your card is never stored on our server</li>
+                    <li className="flex gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-medical-green flex-shrink-0 mt-0.5" /> Supports Visa, MasterCard, PayPal & more</li>
+                    <li className="flex gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-medical-green flex-shrink-0 mt-0.5" /> Download link sent to email after confirmation</li>
+                    <li className="flex gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-medical-green flex-shrink-0 mt-0.5" /> See our <Link href="/refund-policy" className="underline text-medical-blue">Refund Policy</Link> for details</li>
                   </ul>
                 </Card>
 
@@ -204,7 +177,6 @@ export default function Checkout() {
             </Card>
           </div>
 
-          {/* Order summary */}
           <div>
             <Card className="p-6 border border-slate-200 bg-white">
               <h2 className="text-lg font-bold text-slate-900 mb-4">Order Summary</h2>

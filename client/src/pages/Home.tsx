@@ -708,8 +708,13 @@ export default function Home() {
               </a>
             </div>
           </div>
-          <div className="border-t border-slate-800 mt-8 pt-6 text-center text-xs">
-            © {new Date().getFullYear()} Dr. Abdellrahman Saffa Aldin. All rights reserved.
+          <div className="border-t border-slate-800 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center gap-3 text-xs">
+            <span>© {new Date().getFullYear()} Dr. Abdellrahman Saffa Aldin. All rights reserved.</span>
+            <div className="flex gap-4">
+              <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link href="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</Link>
+              <Link href="/refund-policy" className="hover:text-white transition-colors">Refund Policy</Link>
+            </div>
           </div>
         </div>
       </footer>
