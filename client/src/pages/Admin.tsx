@@ -316,7 +316,7 @@ function ProductsSection() {
   const deleteProduct = trpc.products.delete.useMutation();
   const utils = trpc.useUtils();
 
-  const emptyForm = { title: "", description: "", price: "", category: "illustration", imageUrl: "", tags: "", featured: 0, inStock: 1 };
+  const emptyForm = { title: "", description: "", price: "", category: "illustration", imageUrl: "", tags: "", featured: 0, inStock: 1, paddlePriceId: "" };
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -363,6 +363,7 @@ function ProductsSection() {
       tags: Array.isArray(p.tags) ? p.tags.join(", ") : "",
       featured: p.featured,
       inStock: p.inStock,
+      paddlePriceId: (p as any).paddlePriceId ?? "",
     });
     setEditId(p.id);
     setDialogOpen(true);
@@ -419,6 +420,10 @@ function ProductsSection() {
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Tags (comma-separated)</label>
                 <Input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="anatomy, heart, cardiology" />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Paddle Price ID</label>
+                <Input value={form.paddlePriceId} onChange={(e) => setForm({ ...form, paddlePriceId: e.target.value })} placeholder="pri_01abc..." />
               </div>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 text-sm cursor-pointer">
