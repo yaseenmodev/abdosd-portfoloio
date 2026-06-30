@@ -96,3 +96,14 @@ export const sessionBookings = mysqlTable("session_bookings", {
 
 export type SessionBooking = typeof sessionBookings.$inferSelect;
 export type InsertSessionBooking = typeof sessionBookings.$inferInsert;
+
+export const todos = mysqlTable("todos", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 500 }).notNull(),
+  done: int("done").default(0).notNull(),
+  doneAt: timestamp("doneAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Todo = typeof todos.$inferSelect;
+export type InsertTodo = typeof todos.$inferInsert;

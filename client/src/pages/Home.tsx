@@ -138,27 +138,24 @@ export default function Home() {
             <span className="font-bold text-lg text-slate-800">Dr. Abdellrahman</span>
           </div>
           <div className="hidden md:flex items-center gap-6">
-            {[
-              { label: "About", id: "about" },
-              { label: "Mentoring", id: "mentoring" },
-              { label: "Shop", id: "shop-preview" },
-              { label: "FAQ", id: "faq" },
-              { label: "Contact", id: "contact" },
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => scrollTo(item.id)}
-                className="text-sm text-slate-600 hover:text-medical-blue transition-colors font-medium"
-              >
-                {item.label}
-              </button>
-            ))}
-            <Link href="/shop">
-              <Button size="sm" className="bg-medical-blue hover:bg-blue-800 text-white gap-1.5">
-                <ShoppingBag className="w-3.5 h-3.5" />
-                Shop
-              </Button>
+            <Link href="/" className="text-sm text-slate-600 hover:text-medical-blue transition-colors font-medium">
+              Home
             </Link>
+            <button
+              onClick={() => scrollTo("about")}
+              className="text-sm text-slate-600 hover:text-medical-blue transition-colors font-medium"
+            >
+              About Me
+            </button>
+            <Link href="/shop" className="text-sm text-slate-600 hover:text-medical-blue transition-colors font-medium">
+              Shop
+            </Link>
+            <button
+              onClick={() => scrollTo("contact")}
+              className="text-sm text-slate-600 hover:text-medical-blue transition-colors font-medium"
+            >
+              Contact
+            </button>
           </div>
           {/* Mobile */}
           <Link href="/shop" className="md:hidden">
@@ -189,7 +186,7 @@ export default function Home() {
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-slate-900 mt-4">
                   Dr. Abdellrahman
                   <br />
-                  <span className="text-medical-blue">Saffa Aldin</span>
+                  <span className="text-medical-blue">Safaaeldin</span>
                 </h1>
                 <p className="mt-4 text-xl text-slate-600 font-medium">
                   Medical Doctor · USMLE Step 1 Mentor · Medical Illustrator
@@ -253,7 +250,7 @@ export default function Home() {
                 <div className="absolute inset-4 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden border-4 border-white shadow-2xl">
                   <img
                     src="/dr_profile.jpg"
-                    alt="Dr. Abdellrahman Saffa Aldin"
+                    alt="Dr. Abdellrahman Safaaeldin"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = "";
@@ -302,7 +299,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
               <div className="space-y-4">
                 <p className="text-slate-600 leading-relaxed">
-                  I am Dr. Abdellrahman Saffa Aldin, a medical doctor in the early stage of my career.
+                  I am Dr. Abdellrahman Safaaeldin, a medical doctor in the early stage of my career.
                   I have successfully passed USMLE Step 1, and I am passionate about helping other
                   medical students achieve the same milestone.
                 </p>
@@ -686,7 +683,7 @@ export default function Home() {
         <div className="container">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <span className="text-white font-semibold">Dr. Abdellrahman Saffa Aldin</span>
+              <span className="text-white font-semibold">Dr. Abdellrahman Safaaeldin</span>
             </div>
             <div className="flex gap-4 text-sm">
               <Link href="/shop" className="hover:text-white transition-colors">Shop</Link>
@@ -709,7 +706,7 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-slate-800 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center gap-3 text-xs">
-            <span>© {new Date().getFullYear()} Dr. Abdellrahman Saffa Aldin. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} Dr. Abdellrahman Safaaeldin. All rights reserved.</span>
             <div className="flex gap-4">
               <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
               <Link href="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</Link>

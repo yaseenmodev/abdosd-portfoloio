@@ -7,6 +7,7 @@ import {
   products,
   orders,
   sessionBookings,
+  todos,
 } from "../drizzle/schema";
 import type {
   InsertUser,
@@ -18,6 +19,7 @@ import type {
   Product,
   Order,
   SessionBooking,
+  Todo,
 } from "../drizzle/schema";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -212,4 +214,30 @@ export async function updateBookingByPaymobId(
     .update(sessionBookings)
     .set({ status, ...(paymobTransactionId ? { paymobTransactionId } : {}) })
     .where(eq(sessionBookings.paymobOrderId, paymobOrderId));
+}
+
+// ─── Todos ───────────────────────────────────────────────────────────────────
+
+export async function getAllTodos(): Promise<Todo[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(todos).orderBy(todos.createdAt) as Promise<Todo[]>;
+}
+
+export async function createTodo(title: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(todos).values({ title });
+}
+
+export async function markTodoDone(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(todos).set({ done: 1, doneAt: new Date() }).where(eq(todos.id, id));
+}
+
+export async function deleteTodo(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.delete(todos).where(eq(todos.id, id));
 }

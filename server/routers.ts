@@ -20,6 +20,10 @@ import {
   createSessionBooking,
   getAllSessionBookings,
   updateBookingStatus,
+  getAllTodos,
+  createTodo,
+  markTodoDone,
+  deleteTodo,
 } from "./db";
 import { verifyPaddleWebhook } from "./paddle";
 import { TRPCError } from "@trpc/server";
@@ -290,6 +294,32 @@ export const appRouter = router({
       )
       .mutation(async ({ input }) => {
         await updateBookingStatus(input.id, input.status);
+        return { success: true };
+      }),
+  }),
+
+  // ─── Todos ────────────────────────────────────────────────────────────────
+  todos: router({
+    list: adminProcedure.query(async () => getAllTodos()),
+
+    create: adminProcedure
+      .input(z.object({ title: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        await createTodo(input.title);
+        return { success: true };
+      }),
+
+    markDone: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await markTodoDone(input.id);
+        return { success: true };
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteTodo(input.id);
         return { success: true };
       }),
   }),
